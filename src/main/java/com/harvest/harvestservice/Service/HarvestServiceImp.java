@@ -75,7 +75,7 @@ public class HarvestServiceImp implements HarvestService{
     public ApiResponseDto getAllMembers() {
 
         Mono<List<MembersDto>> listMono = webClient.get()
-                .uri("https://observant-courtesy-production.up.railway.app/api/v1/members")
+                .uri("https://strong-alignment-production.up.railway.app/api/v1/members")
                 .retrieve()
                 .bodyToFlux(MembersDto.class)
                 .collectList();
