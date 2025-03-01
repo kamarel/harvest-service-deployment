@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-
 @Repository
 public interface HarvestRepository extends JpaRepository<Harvest, Long> {
 
@@ -17,5 +16,6 @@ public interface HarvestRepository extends JpaRepository<Harvest, Long> {
             "OR p.supervise LIKE CONCAT('%', :query, '%')")
     List<Harvest> searchHarvest(@Param("query") String query);
 
-    Harvest findByHarvestId(String harvestId);
+    // Return the first matching Harvest entity
+    Harvest findFirstByHarvestId(String harvestId);
 }

@@ -22,7 +22,7 @@ public class SectionServiceImp implements SectionService {
 
     @Override
     public Section addSectionInHarvest(String harvestId, Section section) {
-        Harvest harvest = harvestRepository.findByHarvestId(harvestId);
+        Harvest harvest = harvestRepository.findFirstByHarvestId(harvestId);
 
         section.setHarvest(harvest);
 
@@ -34,7 +34,7 @@ public class SectionServiceImp implements SectionService {
 
         Optional<Section> optionalSection = sectionRepository.findById(id);
 
-        if(!optionalSection.isPresent()){
+        if (!optionalSection.isPresent()) {
             throw new RuntimeException("The section does not exist");
         }
 
@@ -51,4 +51,12 @@ public class SectionServiceImp implements SectionService {
     public void deleteSectionById(Long id) {
         sectionRepository.deleteById(id);
     }
+
+
 }
+
+
+
+
+
+

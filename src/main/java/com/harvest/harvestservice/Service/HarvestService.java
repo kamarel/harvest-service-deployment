@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface HarvestService {
 
-    Harvest createharvest(Harvest harvest);
+    Harvest createHarvest(Harvest harvest, String token);
 
     Harvest updateHarvest(Long id, Harvest updatedHarvest);
 
@@ -20,7 +20,7 @@ public interface HarvestService {
     List<Harvest> searchHarvest(String query);
     void deleteAllHarvest();
 
-    ApiResponseDto getAllMembers();
+    ApiResponseDto getAllMembers(String token);
 
     Harvest findByHarvestId(String harvestId);
 }

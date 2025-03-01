@@ -51,10 +51,16 @@ public class HarvestController {
             responseCode = "201",
             description = "Harvest created successfully"
     )
+
     @PostMapping
-    public ResponseEntity<Harvest> createHarvest(@RequestBody Harvest harvest) {
-        Harvest createdHarvest = harvestServiceImp.createharvest(harvest);
-        return new ResponseEntity<>(createdHarvest, HttpStatus.CREATED);  // Return 201 CREATED
+    public ResponseEntity<Harvest> createHarvest(
+            @RequestBody Harvest harvest,
+            @RequestHeader(name = "Authorization", required = true) String authorizationHeader) {
+
+
+        String token = authorizationHeader.startsWith("Bearer ") ? authorizationHeader.substring(7) : authorizationHeader;
+
+        return new ResponseEntity<>(harvestServiceImp.createHarvest(harvest, token), HttpStatus.CREATED);
     }
 
 

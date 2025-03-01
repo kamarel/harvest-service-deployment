@@ -1,5 +1,6 @@
 package com.harvest.harvestservice.Service;
 
+import com.google.common.net.HttpHeaders;
 import com.harvest.harvestservice.Dto.ApiResponseDto;
 import com.harvest.harvestservice.Dto.MembersDto;
 import com.harvest.harvestservice.Entity.Harvest;
@@ -15,26 +16,45 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class HarvestServiceImp implements HarvestService{
-    @Autowired
-    private HarvestRepository harvestRepository;
+public class HarvestServiceImp implements HarvestService {
 
     @Autowired
-    private WebClient webClient;
+    private HarvestRepository harvestRepository;
 
     @Autowired
     private SectionRepository sectionRepository;
 
     @Autowired
+    private WebClient webClient;
+
+    @Autowired
     private EmailService emailService;
+
+    @Override
+    public Harvest createHarvest(Harvest harvest, String token) {
+        Harvest savedHarvest = harvestRepository.save(harvest);
+
+        // Get all members using the provided token
+        ApiResponseDto apiResponseDto = getAllMembers(token);
+        List<MembersDto> membersDtoList = apiResponseDto.getMembersDtoList();
+
+        // Extract email addresses
+        List<String> emails = membersDtoList.stream()
+                .map(MembersDto::getEmail)
+                .collect(Collectors.toList());
+
+        // Send notification
+        emailService.sendHarvestNotification(emails);
+
+        return savedHarvest;
+    }
 
 
 
     @Override
     public Harvest updateHarvest(Long id, Harvest updatedHarvest) {
-
         Harvest existingHarvest = harvestRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Harvest Not Found"));
+                .orElseThrow(() -> new RuntimeException("Harvest Not Found"));
 
         existingHarvest.setStartedDate(updatedHarvest.getStartedDate());
         existingHarvest.setEndDate(updatedHarvest.getEndDate());
@@ -47,7 +67,7 @@ public class HarvestServiceImp implements HarvestService{
     @Override
     public void deleteHarvestById(Long id) {
         Harvest harvest = harvestRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Harvest Not Found"));
+                .orElseThrow(() -> new RuntimeException("Harvest Not Found"));
         harvestRepository.delete(harvest);
     }
 
@@ -58,7 +78,8 @@ public class HarvestServiceImp implements HarvestService{
 
     @Override
     public Harvest getHarvestById(Long id) {
-        return harvestRepository.findById(id).orElseThrow(()-> new RuntimeException("Harvest not found"));
+        return harvestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Harvest not found"));
     }
 
     @Override
@@ -72,48 +93,24 @@ public class HarvestServiceImp implements HarvestService{
     }
 
     @Override
-    public ApiResponseDto getAllMembers() {
-
+    public ApiResponseDto getAllMembers(String token) {
         Mono<List<MembersDto>> listMono = webClient.get()
-                .uri("https://strong-alignment-production.up.railway.app/api/v1/members")
+                .uri("https://distinguished-education-production.up.railway.app/api/v1/members")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToFlux(MembersDto.class)
                 .collectList();
 
-
-        List<MembersDto>membersDtoList = listMono.block();
+        List<MembersDto> membersDtoList = listMono.block();
 
         ApiResponseDto apiResponseDto = new ApiResponseDto();
-
         apiResponseDto.setMembersDtoList(membersDtoList);
-
         return apiResponseDto;
     }
 
     @Override
     public Harvest findByHarvestId(String harvestId) {
-        return harvestRepository.findByHarvestId(harvestId);
+        // Assuming your repository method is defined as findFirstByHarvestId(...)
+        return harvestRepository.findFirstByHarvestId(harvestId);
     }
-
-    @Override
-    public Harvest createharvest(Harvest harvest) {
-
-        // Save the harvest
-        Harvest harvest1 = harvestRepository.save(harvest);
-
-        // Get all members
-        ApiResponseDto apiResponseDto = getAllMembers();
-        List<MembersDto> membersDtoList = apiResponseDto.getMembersDtoList();
-
-        // Extract email addresses from the list of members
-        List<String> emails = membersDtoList.stream()
-                .map(MembersDto::getEmail)  // Assuming MembersDto has a getEmail() method
-                .collect(Collectors.toList());
-
-        // Send notification to all member emails
-        emailService.sendHarvestNotification(emails);
-
-        return harvest1;
-    }
-
 }
